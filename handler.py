@@ -136,21 +136,21 @@ def generate_with_streaming(prompt, settings, max_new_tokens):
             break
 
 
-def inference(event) -> Union[str, Generator[str, None, None]]:
+def handler(job: dict) -> Union[dict, str, Generator[str, None, None]]:
     global generator, default_settings
 
     try:
-        job_input = event['input']
+        job_input = job['input']
 
         if not job_input:
             raise ValueError('No input provided')
 
-        prompt: str = job_input.pop('prompt_prefix', prompt_prefix) + \
-            job_input.pop('prompt') + \
-            job_input.pop('prompt_suffix', prompt_suffix)
+        prompt: str = job_input.get('prompt_prefix', prompt_prefix) + \
+            job_input.get('prompt') + \
+            job_input.get('prompt_suffix', prompt_suffix)
 
-        max_new_tokens = job_input.pop('max_new_tokens', 100)
-        stream: bool = job_input.pop('stream', False)
+        max_new_tokens = job_input.get('max_new_tokens', 100)
+        stream: bool = job_input.get('stream', False)
         settings = copy(default_settings)
         settings.update(job_input)
         sampler_settings = ExLlamaV2Sampler.Settings()
@@ -185,6 +185,7 @@ if __name__ == '__main__':
     logger.info('Starting ExLlamaV2 serverless worker with streaming enabled.')
     runpod.serverless.start(
         {
-            'handler': inference
+            'handler': handler,
+            'return_aggregate_stream': True
         }
     )

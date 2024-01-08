@@ -1,7 +1,6 @@
 # runpod-worker-exllamav2
 
 > [!NOTE]  
-> [LLaMA](https://ai.facebook.com/blog/large-language-model-llama-meta-ai/)
 > [GPTQ](https://arxiv.org/abs/2210.17323) models with fast
 > [ExLlamaV2](https://github.com/turboderp/exllamav2) inference on
 > [RunPod](https://runpod.io?ref=2xxro4sy) Serverless.
@@ -12,7 +11,7 @@
 
 ## Summary
 
-This Docker image runs a Llama model on a serverless RunPod worker
+This Docker image runs a GPTQ model on a serverless RunPod worker
 using the optimized [turboderp's exllamav2 repo](
 https://github.com/turboderp/exllamav2).
 
@@ -31,8 +30,8 @@ https://github.com/turboderp/exllamav2).
 
     | Template Field  | Value                                                                     |
     |-----------------|---------------------------------------------------------------------------|
-    | Template Name   | `exllamav2-runpod-serverless`                                             |
-    | Container Image | `ashleykleynhans/runpod-worker-exllamav2:1.0.0`                           |
+    | Template Name   | `exllamav2`                                                               |
+    | Container Image | `ashleykleynhans/runpod-worker-exllamav2:1.0.7`                           |
     | Container Disk  | A size large enough to store your libraries + your desired model in 4bit. |
 
     - Container Disk Size Guide:
@@ -62,8 +61,8 @@ https://github.com/turboderp/exllamav2).
 5. Fill in the following fields and click on the `Create` button:
     | Endpoint Field | Value |
     | --- | --- |
-    | Endpoint Name | `exllama-runpod-serverless` |
-    | Select Template | `exllama-runpod-serverless` |
+    | Endpoint Name | `exllamav2` |
+    | Select Template | `exllamav2` |
     | Min Provisioned Workers | `0` |
     | Max Workers | `1` |
     | Idle Timeout | `5` seconds |
@@ -81,7 +80,6 @@ See the `predict.py` file for an example. For convenience we also copy the code 
 import os
 import requests
 from time import sleep
-import logging
 import argparse
 import sys
 import json
@@ -176,7 +174,7 @@ if __name__ == '__main__':
 -sh:non-smoker,mariguana 5-6 months ago,3 beers on the weekend, basketball at school
 -sh:no std,no other significant medical conditions."""
     args = parser.parse_args()
-    params = json.loads(args.params_json) if args.params_json else "{}"
+    params = json.loads(args.params_json) if args.params_json else {}
     import time
     start = time.time()
     print(run(prompt, params=params, stream=args.stream))
@@ -200,3 +198,19 @@ RUNPOD_AI_API_KEY='**************' RUNPOD_ENDPOINT_ID='*******' python predict.p
 
 You can generate the API key under your [RunPod Settings](
 https://www.runpod.io/console/serverless/user/settings) under `API Keys`.
+
+## Community and Contributing
+
+Pull requests and issues on [GitHub](https://github.com/ashleykleynhans/runpod-worker-exllamav2)
+are welcome. Bug fixes and new features are encouraged.
+
+You can contact me and get help with deploying your container
+to RunPod on the RunPod Discord Server below,
+my username is **ashleyk**.
+
+<a target="_blank" href="https://discord.gg/pJ3P2DbUUq">![Discord Banner 2](https://discordapp.com/api/guilds/912829806415085598/widget.png?style=banner2)</a>
+
+## Appreciate my work?
+
+<a href="https://www.buymeacoffee.com/ashleyk" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
