@@ -130,6 +130,8 @@ def generate_with_streaming(prompt, settings, max_new_tokens):
 
 
 def inference(event) -> Union[str, Generator[str, None, None]]:
+    global generator, default_settings
+
     try:
         job_input = event['input']
 
@@ -142,7 +144,6 @@ def inference(event) -> Union[str, Generator[str, None, None]]:
 
         max_new_tokens = job_input.pop('max_new_tokens', 100)
         stream: bool = job_input.pop('stream', False)
-        generator, default_settings = load_model()
         settings = copy(default_settings)
         settings.update(job_input)
         sampler_settings = ExLlamaV2Sampler.Settings()
