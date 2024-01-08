@@ -3,6 +3,7 @@ import sys
 import glob
 import re
 import codecs
+import traceback
 import runpod
 from runpod.serverless.modules.rp_logger import RunPodLogger
 from huggingface_hub import snapshot_download
@@ -33,9 +34,6 @@ ESCAPE_SEQUENCE_RE = re.compile(r'''
 
 
 logger = RunPodLogger()
-tokenizer = None
-generator = None
-default_settings = None
 
 
 def decode_escapes(s):
@@ -50,7 +48,7 @@ prompt_suffix = decode_escapes(os.getenv('PROMPT_SUFFIX', ''))
 
 
 def load_model():
-    global generator, default_settings
+    global generator, default_settings, tokenizer
 
     if not generator:
         model_directory = snapshot_download(
@@ -103,7 +101,7 @@ def load_model():
             k: getattr(settings, k) for k in dir(settings) if k[:2] != '__'
         }
 
-    return generator, default_settings
+    return generator, tokenizer, default_settings
 
 
 def generate_with_streaming(prompt, settings, max_new_tokens):
@@ -112,9 +110,6 @@ def generate_with_streaming(prompt, settings, max_new_tokens):
     # Tokenizing the input
     input_ids = tokenizer.encode(prompt)
     prompt_tokens = input_ids.shape[-1]
-
-    # Make sure CUDA is initialized so we can measure performance
-    generator.warmup()
 
     generator.set_stop_conditions([])
     generator.begin_stream(input_ids, settings)
@@ -132,40 +127,50 @@ def generate_with_streaming(prompt, settings, max_new_tokens):
 
 
 def inference(event) -> Union[str, Generator[str, None, None]]:
-    job_input = event['input']
+    try:
+        job_input = event['input']
 
-    if not job_input:
-        raise ValueError('No input provided')
+        if not job_input:
+            raise ValueError('No input provided')
 
-    prompt: str = job_input.pop('prompt_prefix', prompt_prefix) + \
-        job_input.pop('prompt') + \
-        job_input.pop('prompt_suffix', prompt_suffix)
+        prompt: str = job_input.pop('prompt_prefix', prompt_prefix) + \
+            job_input.pop('prompt') + \
+            job_input.pop('prompt_suffix', prompt_suffix)
 
-    max_new_tokens = job_input.pop('max_new_tokens', 100)
-    stream: bool = job_input.pop('stream', False)
-    generator, default_settings = load_model()
-    settings = copy(default_settings)
-    settings.update(job_input)
-    sampler_settings = ExLlamaV2Sampler.Settings()
+        max_new_tokens = job_input.pop('max_new_tokens', 100)
+        stream: bool = job_input.pop('stream', False)
+        generator, default_settings = load_model()
+        settings = copy(default_settings)
+        settings.update(job_input)
+        sampler_settings = ExLlamaV2Sampler.Settings()
 
-    for key, value in settings.items():
-        setattr(sampler_settings, key, value)
+        for key, value in settings.items():
+            setattr(sampler_settings, key, value)
 
-    if stream:
-        output: Union[str, Generator[str, None, None]] = generate_with_streaming(
-            prompt,
-            sampler_settings,
-            max_new_tokens
-        )
+        if stream:
+            output: Union[str, Generator[str, None, None]] = generate_with_streaming(
+                prompt,
+                sampler_settings,
+                max_new_tokens
+            )
 
-        for res in output:
-            yield res
-    else:
-        output_text = generator.generate_simple(prompt, sampler_settings, max_new_tokens)
-        yield output_text[len(prompt):]
+            for res in output:
+                yield res
+        else:
+            output_text = generator.generate_simple(prompt, sampler_settings, max_new_tokens)
+            yield output_text[len(prompt):]
+    except Exception as e:
+        logger.error(f'An exception was raised: {e}')
+
+        return {
+            'error': traceback.format_exc(),
+            'refresh_worker': True
+        }
 
 
 if __name__ == '__main__':
+    generator, tokenizer, default_settings = load_model()
+    generator.warmup()
     logger.info('Starting ExLlamaV2 serverless worker with streaming enabled.')
     runpod.serverless.start(
         {

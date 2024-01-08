@@ -34,7 +34,6 @@ def run(prompt, params={}, stream=False):
 
 
 def stream_output(task_id, stream=False):
-    # try:
     url = f"https://api.runpod.ai/v2/{endpoint_id}/stream/{task_id}"
     headers = {
         "Authorization": f"Bearer {os.environ['RUNPOD_AI_API_KEY']}"
