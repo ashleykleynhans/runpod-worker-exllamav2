@@ -1,3 +1,4 @@
+
 FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -12,7 +13,7 @@ RUN pip install --upgrade pip && \
     pip install huggingface_hub runpod
 RUN git clone https://github.com/turboderp/exllamav2.git
 RUN cd exllamav2 && \
-    python setup.py install --user
+     TORCH_CUDA_ARCH_LIST=Turing python setup.py install --user
 
 COPY handler.py /app/handler.py
 
