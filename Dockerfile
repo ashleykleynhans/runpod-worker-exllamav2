@@ -24,4 +24,4 @@ ENV PROMPT_SUFFIX=""
 ENV HUGGINGFACE_HUB_CACHE="/runpod-volume/huggingface-cache/hub"
 ENV TRANSFORMERS_CACHE="/runpod-volume/huggingface-cache/hub"
 
-CMD ["python", "-u", "/app/handler.py"]
+ENTRYPOINT ["python", "-u", "/app/handler.py"]

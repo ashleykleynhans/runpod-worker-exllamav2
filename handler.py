@@ -34,6 +34,9 @@ ESCAPE_SEQUENCE_RE = re.compile(r'''
 
 
 logger = RunPodLogger()
+tokenizer = None
+generator = None
+default_settings = None
 
 
 def decode_escapes(s):
