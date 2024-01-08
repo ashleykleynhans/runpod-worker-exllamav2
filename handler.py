@@ -19,6 +19,7 @@ from exllamav2 import(
 
 from exllamav2.generator import (
     ExLlamaV2BaseGenerator,
+    ExLlamaV2StreamingGenerator,
     ExLlamaV2Sampler,
 )
 
@@ -37,6 +38,8 @@ logger = RunPodLogger()
 tokenizer = None
 generator = None
 default_settings = None
+model = None
+cache = None
 
 
 def decode_escapes(s):
@@ -51,7 +54,7 @@ prompt_suffix = decode_escapes(os.getenv('PROMPT_SUFFIX', ''))
 
 
 def load_model():
-    global generator, default_settings, tokenizer
+    global generator, default_settings, tokenizer, model, cache
 
     if not generator:
         model_directory = snapshot_download(
@@ -108,12 +111,14 @@ def load_model():
 
 
 def generate_with_streaming(prompt, settings, max_new_tokens):
-    global generator, tokenizer
+    global generator, tokenizer, model, cache
 
     # Tokenizing the input
     input_ids = tokenizer.encode(prompt)
     prompt_tokens = input_ids.shape[-1]
 
+    generator = ExLlamaV2StreamingGenerator(model, cache, tokenizer)
+    generator.warmup()
     generator.set_stop_conditions([])
     generator.begin_stream(input_ids, settings)
     generated_tokens = 0
