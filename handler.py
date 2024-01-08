@@ -115,6 +115,8 @@ def generate_with_streaming(prompt, settings, max_new_tokens):
 
     # Tokenizing the input
     input_ids = tokenizer.encode(prompt)
+
+    # Calculate number of tokens in the prompt
     prompt_tokens = input_ids.shape[-1]
 
     generator = ExLlamaV2StreamingGenerator(model, cache, tokenizer)

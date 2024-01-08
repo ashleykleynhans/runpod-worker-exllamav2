@@ -6,8 +6,9 @@
 > [ExLlamaV2](https://github.com/turboderp/exllamav2) inference on
 > [RunPod](https://runpod.io?ref=2xxro4sy) Serverless.
 > 
-> This is  a fork of Yushi Homma's [exllama-runpod-serverlerss](
-> https://github.com/hommayushi3/exllama-runpod-serverless) repo.
+> This is based on Yushi Homma's [exllama-runpod-serverless](
+> https://github.com/hommayushi3/exllama-runpod-serverless) repo,
+> but has been rewritten for exllamav2.
 
 ## Summary
 

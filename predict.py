@@ -9,7 +9,7 @@ endpoint_id = os.environ["RUNPOD_ENDPOINT_ID"]
 URI = f"https://api.runpod.ai/v2/{endpoint_id}/run"
 
 
-def run(prompt, params={}, stream=False):
+def run(prompt, params, stream=False):
     request = {
         'prompt': prompt,
         'max_new_tokens': 1800,
@@ -98,7 +98,7 @@ if __name__ == '__main__':
 -sh:non-smoker,mariguana 5-6 months ago,3 beers on the weekend, basketball at school
 -sh:no std,no other significant medical conditions."""
     args = parser.parse_args()
-    params = json.loads(args.params_json) if args.params_json else "{}"
+    params = json.loads(args.params_json) if args.params_json else {}
     start = time.time()
     print(run(prompt, params=params, stream=args.stream))
     print("Time taken: ", time.time() - start, " seconds")
